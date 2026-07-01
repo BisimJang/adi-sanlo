@@ -1,0 +1,5 @@
+alembic
+pytest
+pytest-asyncio
+sqlalchemy[asyncio]
+aiosqlite

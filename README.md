@@ -26,4 +26,3 @@ Adi-Sanlo supports:
 - `/docs`: Technical architecture and API reference (coming soon).
 
 ---
-*Built with ❤️ for the DevCareer x Nomba Hackathon.*

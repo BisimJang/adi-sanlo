@@ -1,3 +1,8 @@
+fastapi
+uvicorn
+python-dotenv
+httpx
+respx
 alembic
 pytest
 pytest-asyncio

@@ -8,3 +8,5 @@ pytest
 pytest-asyncio
 sqlalchemy[asyncio]
 aiosqlite
+python-dateutil
+email-validator

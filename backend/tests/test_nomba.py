@@ -1,23 +1,23 @@
 import os
 import pytest
-import httpx
 from nomba_client import NombaClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Real credentials needed from .env
-ACCOUNT_ID = os.getenv("NOMBA_ACCOUNT_ID")
+PARENT_ACCOUNT_ID = os.getenv("NOMBA_ACCOUNT_ID")
+SUB_ACCOUNT_ID = os.getenv("NOMBA_SUB_ACCOUNT_ID", "bb660a27-be50-48d5-991a-5ab223f9b3af")
 CLIENT_ID = os.getenv("NOMBA_CLIENT_ID")
 CLIENT_SECRET = os.getenv("NOMBA_CLIENT_SECRET")
 
 @pytest.fixture
 def nomba_client():
-    if not all([ACCOUNT_ID, CLIENT_ID, CLIENT_SECRET]):
+    if not all([PARENT_ACCOUNT_ID, CLIENT_ID, CLIENT_SECRET]):
         pytest.skip("Nomba credentials missing in .env. Skipping live tests.")
-        
+
     return NombaClient(
-        account_id=ACCOUNT_ID,
+        parent_account_id=PARENT_ACCOUNT_ID,
+        sub_account_id=SUB_ACCOUNT_ID,
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET
     )
@@ -34,9 +34,9 @@ async def test_get_access_token_live(nomba_client):
 async def test_create_checkout_live(nomba_client):
     """Hits the live Nomba checkout creation endpoint."""
     response = await nomba_client.create_checkout(
-        amount=5000,
-        customer_email="test@adisanlo.com",
-        callback_url="http://localhost:8000/callbacks/nomba"
+        amount=100,
+        customer_email="jason@gmail.com",
+        callback_url="https://adi-sanlo-production.up.railway.app/callbacks/nomba"
     )
     
     assert response is not None

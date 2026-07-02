@@ -7,8 +7,9 @@ logger = logging.getLogger(__name__)
 class NombaClient:
     BASE_URL = "https://api.nomba.com/v1"
 
-    def __init__(self, account_id: str, client_id: str, client_secret: str):
-        self.account_id = account_id
+    def __init__(self, parent_account_id: str, sub_account_id: str, client_id: str, client_secret: str):
+        self.parent_account_id = parent_account_id
+        self.sub_account_id = sub_account_id
         self.client_id = client_id
         self.client_secret = client_secret
         self.access_token = None
@@ -22,13 +23,13 @@ class NombaClient:
 
         # Otherwise, fetch a new one
         response = await self.client.post(
-            "/auth/token",
+            "/auth/token/issue",
             json={
                 "grant_type": "client_credentials",
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
             },
-            headers={"accountId": self.account_id}
+            headers={"accountId": self.parent_account_id}
         )
         response.raise_for_status()
         data = response.json()
@@ -43,7 +44,7 @@ class NombaClient:
         token = await self._get_access_token()
         headers = kwargs.pop("headers", {})
         headers["Authorization"] = f"Bearer {token}"
-        headers["accountId"] = self.account_id
+        headers["accountId"] = self.parent_account_id
         
         response = await self.client.request(method, endpoint, headers=headers, **kwargs)
         response.raise_for_status()
@@ -54,7 +55,7 @@ class NombaClient:
         payload = {
             "order": {
                 "orderReference": f"ord_{int(datetime.utcnow().timestamp())}",
-                "customerId": customer_email,
+                "customerEmail": customer_email,
                 "callbackUrl": callback_url,
                 "amount": amount,
                 "currency": "NGN"

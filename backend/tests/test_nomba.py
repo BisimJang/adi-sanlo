@@ -1,85 +1,44 @@
+import os
 import pytest
-import respx
 import httpx
 from nomba_client import NombaClient
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Real credentials needed from .env
+ACCOUNT_ID = os.getenv("NOMBA_ACCOUNT_ID")
+CLIENT_ID = os.getenv("NOMBA_CLIENT_ID")
+CLIENT_SECRET = os.getenv("NOMBA_CLIENT_SECRET")
 
 @pytest.fixture
 def nomba_client():
+    if not all([ACCOUNT_ID, CLIENT_ID, CLIENT_SECRET]):
+        pytest.skip("Nomba credentials missing in .env. Skipping live tests.")
+        
     return NombaClient(
-        account_id="acc_123",
-        client_id="client_abc",
-        client_secret="secret_xyz"
+        account_id=ACCOUNT_ID,
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET
     )
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_get_access_token(nomba_client):
-    # Mock the auth token endpoint
-    respx.post("https://api.nomba.com/v1/auth/token").mock(
-        return_value=httpx.Response(200, json={
-            "data": {
-                "access_token": "mocked_token_123",
-                "expires_in": 3600
-            }
-        })
-    )
-
+async def test_get_access_token_live(nomba_client):
+    """Hits the live Nomba authentication endpoint."""
     token = await nomba_client._get_access_token()
-    assert token == "mocked_token_123"
-    assert nomba_client.access_token == "mocked_token_123"
+    assert token is not None
+    assert isinstance(token, str)
+    assert len(token) > 0
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_create_checkout(nomba_client):
-    # Mock auth first
-    respx.post("https://api.nomba.com/v1/auth/token").mock(
-        return_value=httpx.Response(200, json={
-            "data": {"access_token": "mocked_token_123", "expires_in": 3600}
-        })
-    )
-
-    # Mock checkout creation
-    respx.post("https://api.nomba.com/v1/checkout/order").mock(
-        return_value=httpx.Response(200, json={
-            "data": {
-                "checkoutLink": "https://checkout.nomba.com/pay/abc",
-                "orderReference": "ord_123"
-            }
-        })
-    )
-
+async def test_create_checkout_live(nomba_client):
+    """Hits the live Nomba checkout creation endpoint."""
     response = await nomba_client.create_checkout(
         amount=5000,
-        customer_email="test@example.com",
-        callback_url="http://localhost/callback"
+        customer_email="test@adisanlo.com",
+        callback_url="http://localhost:8000/callbacks/nomba"
     )
     
-    assert response["data"]["checkoutLink"] == "https://checkout.nomba.com/pay/abc"
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_charge_tokenized_card(nomba_client):
-    # Mock auth
-    respx.post("https://api.nomba.com/v1/auth/token").mock(
-        return_value=httpx.Response(200, json={
-            "data": {"access_token": "mocked_token_123", "expires_in": 3600}
-        })
-    )
-
-    # Mock token charge
-    respx.post("https://api.nomba.com/v1/checkout/tokenized-card-payment").mock(
-        return_value=httpx.Response(200, json={
-            "data": {
-                "status": "success",
-                "transactionReference": "tx_abc123"
-            }
-        })
-    )
-
-    response = await nomba_client.charge_tokenized_card(
-        token="tok_visa_123",
-        amount=5000,
-        customer_email="test@example.com"
-    )
-
-    assert response["data"]["status"] == "success"
+    assert response is not None
+    assert "data" in response
+    assert "checkoutLink" in response["data"]

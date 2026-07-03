@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply m-0 bg-surface text-ink font-sans antialiased min-h-screen;
+  }
+  #root {
+    @apply flex flex-col min-h-screen w-full;
+  }
+  h1, h2, h3 {
+    @apply m-0 font-bold tracking-tight;
+  }
+  a {
+    @apply text-inherit no-underline;
+  }
+  button {
+    @apply cursor-pointer;
+    font-family: inherit;
+  }
+  :focus-visible {
+    @apply outline-2 outline-accent outline-offset-4;
+  }
+}
+
+@layer utilities {
+  .metric-label {
+    @apply font-mono text-[11px] tracking-[0.08em] uppercase text-indigo-mid;
+  }
+  .metric-value {
+    @apply text-[28px] font-bold text-ink tracking-[-0.02em] leading-none;
+  }
+}

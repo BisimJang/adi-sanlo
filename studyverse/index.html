@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studyverse — Learn Without Limits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f1a;
+    --surface:  #13162a;
+    --border:   rgba(255,255,255,0.07);
+    --text:     #e8eaf6;
+    --muted:    #7b82b0;
+    --primary:  #6c63ff;
+    --primary-h:#5a52e0;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --gold:     #f59e0b;
+    --max-w:    1100px;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+  a{ color:inherit; text-decoration:none; }
+  button{ cursor:pointer; font-family:'Inter',sans-serif; }
+  .wrap{ max-width:var(--max-w); margin:0 auto; padding:0 32px; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* ── NAV ── */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(13,15,26,0.85);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; letter-spacing:-0.02em; color:#fff; }
+  .logo-badge{ background:var(--primary); color:#fff; font-size:11px; font-weight:600; padding:2px 7px; border-radius:20px; letter-spacing:0.04em; }
+  .nav-links{ display:flex; gap:28px; font-size:14px; color:var(--muted); }
+  .nav-links a:hover{ color:var(--text); }
+  .nav-btn{
+    font-size:13px; font-weight:600;
+    background:var(--primary); color:#fff;
+    padding:9px 20px; border-radius:8px; border:none;
+    transition:background .15s, transform .15s;
+  }
+  .nav-btn:hover{ background:var(--primary-h); transform:translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero{
+    padding:120px 0 80px;
+    text-align:center;
+    background:radial-gradient(ellipse 70% 50% at 50% 0%, rgba(108,99,255,0.18) 0%, transparent 70%);
+  }
+  .hero-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.3);
+    color:var(--primary); font-size:12px; font-weight:600;
+    padding:5px 14px; border-radius:20px; letter-spacing:0.04em;
+    margin-bottom:28px;
+  }
+  .hero-badge .dot{ width:6px; height:6px; background:var(--primary); border-radius:50%; }
+  .hero h1{
+    font-size:clamp(40px,6vw,72px); font-weight:800;
+    line-height:1.05; letter-spacing:-0.03em; color:#fff;
+    margin-bottom:22px;
+  }
+  .hero h1 span{ color:var(--primary); }
+  .hero p{
+    font-size:18px; line-height:1.65; color:var(--muted);
+    max-width:540px; margin:0 auto 40px;
+  }
+  .hero-ctas{ display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--primary); color:#fff; font-size:14px; font-weight:600;
+    padding:13px 28px; border-radius:8px; border:none;
+    transition:background .15s, transform .15s;
+  }
+  .btn-primary:hover{ background:var(--primary-h); transform:translateY(-1px); }
+  .btn-ghost{
+    background:transparent; color:var(--text); font-size:14px; font-weight:500;
+    padding:13px 28px; border-radius:8px; border:1px solid var(--border);
+    transition:border-color .15s;
+  }
+  .btn-ghost:hover{ border-color:rgba(255,255,255,0.3); }
+
+  /* ── STATS BAR ── */
+  .stats-bar{
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+    padding:28px 0;
+  }
+  .stats-bar .wrap{ display:flex; justify-content:space-around; flex-wrap:wrap; gap:20px; }
+  .stat{ text-align:center; }
+  .stat .val{ font-size:28px; font-weight:800; color:#fff; letter-spacing:-0.03em; }
+  .stat .lbl{ font-size:13px; color:var(--muted); margin-top:4px; }
+
+  /* ── PLANS ── */
+  .plans-section{ padding:100px 0; }
+  .section-head{ text-align:center; margin-bottom:60px; }
+  .section-head .eyebrow{
+    font-size:12px; font-weight:600; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--primary); margin-bottom:14px;
+  }
+  .section-head h2{ font-size:clamp(28px,3.5vw,40px); font-weight:800; color:#fff; letter-spacing:-0.02em; }
+  .section-head p{ font-size:16px; color:var(--muted); margin-top:12px; }
+  .plans-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:20px; }
+
+  .plan-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:32px;
+    display:flex; flex-direction:column; gap:24px;
+    position:relative;
+    transition:border-color .2s, transform .2s;
+  }
+  .plan-card:hover{ border-color:rgba(108,99,255,0.4); transform:translateY(-2px); }
+  .plan-card.popular{
+    border-color:var(--primary);
+    background:linear-gradient(135deg, rgba(108,99,255,0.08) 0%, var(--surface) 60%);
+  }
+  .popular-tag{
+    position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    background:var(--primary); color:#fff;
+    font-size:11px; font-weight:700; letter-spacing:0.06em;
+    padding:4px 14px; border-radius:20px; text-transform:uppercase; white-space:nowrap;
+  }
+  .plan-name{ font-size:18px; font-weight:700; color:#fff; }
+  .plan-desc{ font-size:13.5px; color:var(--muted); line-height:1.5; }
+  .plan-price{ display:flex; align-items:baseline; gap:4px; }
+  .plan-price .currency{ font-size:20px; font-weight:700; color:#fff; }
+  .plan-price .amount{ font-size:40px; font-weight:800; color:#fff; letter-spacing:-0.03em; }
+  .plan-price .period{ font-size:14px; color:var(--muted); }
+  .plan-features{ display:flex; flex-direction:column; gap:10px; flex:1; }
+  .plan-feature{
+    display:flex; align-items:center; gap:10px;
+    font-size:13.5px; color:var(--muted);
+  }
+  .plan-feature .check{ color:var(--green); font-size:15px; }
+  .plan-subscribe{
+    width:100%; padding:12px; border-radius:8px;
+    font-size:14px; font-weight:600; border:none;
+    background:rgba(108,99,255,0.15); color:var(--primary);
+    border:1px solid rgba(108,99,255,0.3);
+    transition:background .15s, border-color .15s;
+  }
+  .plan-card.popular .plan-subscribe{
+    background:var(--primary); color:#fff; border-color:var(--primary);
+  }
+  .plan-subscribe:hover{ background:var(--primary); color:#fff; border-color:var(--primary); }
+  .plans-loading{
+    text-align:center; padding:80px; color:var(--muted);
+    font-family:'JetBrains Mono',monospace; font-size:14px;
+  }
+
+  /* ── PORTAL ── */
+  .portal-section{
+    padding:100px 0;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+  }
+  .portal-box{
+    max-width:560px; margin:0 auto;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:16px; padding:40px;
+  }
+  .portal-box h3{ font-size:22px; font-weight:700; color:#fff; margin-bottom:8px; }
+  .portal-box p{ font-size:14px; color:var(--muted); margin-bottom:28px; }
+  .input-group{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+  .input-group label{ font-size:13px; font-weight:500; color:var(--muted); }
+  .input-group input{
+    background:var(--surface); border:1px solid var(--border);
+    color:var(--text); font-family:'Inter',sans-serif; font-size:14px;
+    padding:12px 16px; border-radius:8px; outline:none;
+    transition:border-color .15s;
+  }
+  .input-group input:focus{ border-color:var(--primary); }
+  .input-group input::placeholder{ color:var(--muted); }
+  .portal-result{
+    margin-top:24px; padding:20px;
+    background:var(--surface); border-radius:10px;
+    border:1px solid var(--border); display:none;
+  }
+  .portal-result.show{ display:block; }
+  .result-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .result-row:last-child{ border-bottom:none; }
+  .result-label{ font-size:12px; color:var(--muted); }
+  .result-value{ font-size:13px; font-weight:600; color:#fff; font-family:'JetBrains Mono',monospace; }
+  .status-badge{
+    font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px;
+    text-transform:uppercase; letter-spacing:0.05em;
+  }
+  .status-active{ background:rgba(34,197,94,0.12); color:var(--green); }
+  .status-incomplete{ background:rgba(245,158,11,0.12); color:var(--gold); }
+  .status-cancelled{ background:rgba(239,68,68,0.12); color:var(--red); }
+  .status-paused{ background:rgba(123,130,176,0.15); color:var(--muted); }
+
+  /* ── MODAL ── */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; z-index:100;
+    background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:40px; width:100%; max-width:460px;
+    margin:20px;
+  }
+  .modal h3{ font-size:20px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .modal .sub-title{ font-size:13px; color:var(--muted); margin-bottom:28px; }
+  .modal-close{
+    float:right; background:none; border:none;
+    color:var(--muted); font-size:20px; cursor:pointer; margin-top:-4px;
+  }
+  .modal-close:hover{ color:#fff; }
+  .plan-summary{
+    background:rgba(108,99,255,0.08); border:1px solid rgba(108,99,255,0.2);
+    border-radius:8px; padding:14px 16px; margin-bottom:24px;
+  }
+  .plan-summary .ps-name{ font-size:14px; font-weight:600; color:#fff; }
+  .plan-summary .ps-price{ font-size:13px; color:var(--muted); margin-top:2px; }
+  .modal-error{
+    color:var(--red); font-size:13px; margin-top:12px;
+    background:rgba(239,68,68,0.08); padding:10px 14px;
+    border-radius:6px; display:none;
+  }
+  .modal-error.show{ display:block; }
+  .spinner{ display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:8px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ── FOOTER ── */
+  footer{
+    border-top:1px solid var(--border);
+    padding:40px 0;
+    text-align:center;
+    color:var(--muted); font-size:13px;
+  }
+  footer span{ color:var(--primary); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">
+      Studyverse
+      <span class="logo-badge">BETA</span>
+    </div>
+    <div class="nav-links">
+      <a href="#plans">Pricing</a>
+      <a href="#portal">My Account</a>
+    </div>
+    <button class="nav-btn" onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'})">Get started</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Powered by Adi-Sanlo &times; Nomba
+    </div>
+    <h1>Learn without<br><span>limits</span>.</h1>
+    <p>World-class courses in tech, design, and business — billed simply, renewed automatically, no hassle.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'})">Browse plans</button>
+      <button class="btn-ghost" onclick="document.getElementById('portal').scrollIntoView({behavior:'smooth'})">Check my access</button>
+    </div>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="wrap">
+    <div class="stat"><div class="val">12,400+</div><div class="lbl">Students enrolled</div></div>
+    <div class="stat"><div class="val">340+</div><div class="lbl">Courses available</div></div>
+    <div class="stat"><div class="val">98%</div><div class="lbl">Completion rate</div></div>
+    <div class="stat"><div class="val">&#8358;0</div><div class="lbl">Hidden fees</div></div>
+  </div>
+</div>
+
+<section class="plans-section" id="plans">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>Pick your plan, start learning</h2>
+      <p>All plans include full course access. Cancel anytime.</p>
+    </div>
+    <div id="plans-grid" class="plans-grid">
+      <div class="plans-loading">Loading plans from Adi-Sanlo...</div>
+    </div>
+  </div>
+</section>
+
+<section class="portal-section" id="portal">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Student Portal</div>
+      <h2>Check your access</h2>
+      <p>Look up your subscription status by email.</p>
+    </div>
+    <div class="portal-box">
+      <h3>My Account</h3>
+      <p>Enter the email you used to subscribe.</p>
+      <div class="input-group">
+        <label>Email address</label>
+        <input type="email" id="portal-email" placeholder="chidi@gmail.com">
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;" onclick="lookupSubscription()">
+        <span id="portal-btn-text">Look up my subscription</span>
+      </button>
+      <div class="modal-error" id="portal-error"></div>
+      <div class="portal-result" id="portal-result"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Studyverse &copy; 2026 &mdash; Billing powered by <span>Adi-Sanlo</span> on top of Nomba. This is a demo platform.</p>
+</footer>
+
+<!-- Subscribe Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Subscribe to Studyverse</h3>
+    <div class="sub-title">You will be redirected to Nomba's secure checkout.</div>
+    <div class="plan-summary" id="modal-plan-summary">
+      <div class="ps-name" id="modal-plan-name">—</div>
+      <div class="ps-price" id="modal-plan-price">—</div>
+    </div>
+    <div class="input-group">
+      <label>Full name</label>
+      <input type="text" id="sub-name" placeholder="Chidi Okafor">
+    </div>
+    <div class="input-group">
+      <label>Email address</label>
+      <input type="email" id="sub-email" placeholder="chidi@gmail.com">
+    </div>
+    <div class="modal-error" id="modal-error"></div>
+    <button class="btn-primary" id="sub-btn" style="width:100%;margin-top:20px;justify-content:center;display:flex;align-items:center;" onclick="createSubscription()">
+      <span id="sub-btn-text">Subscribe &amp; Pay</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const API = 'https://adi-sanlo-production.up.railway.app';
+  let selectedPlan = null;
+
+  const FEATURES = {
+    default: ['Full course library access','Progress tracking','Certificate of completion','Community Discord access','Mobile + desktop'],
+    extra:   ['Priority support','Live Q&A sessions monthly','Downloadable resources','Career mentorship calls'],
+  };
+
+  function naira(kobo) {
+    return '₦' + (kobo / 100).toLocaleString('en-NG');
+  }
+
+  function intervalLabel(interval) {
+    return interval === 'yearly' ? '/yr' : '/mo';
+  }
+
+  async function loadPlans() {
+    const grid = document.getElementById('plans-grid');
+    try {
+      const res = await fetch(`${API}/v1/plans`);
+      const plans = await res.json();
+
+      if (!plans.length) {
+        grid.innerHTML = `<div class="plans-loading">No plans found. Create one via the Adi-Sanlo dashboard first.</div>`;
+        return;
+      }
+
+      grid.innerHTML = '';
+
+      plans.forEach((plan, i) => {
+        const isPopular = i === Math.floor(plans.length / 2) || (plans.length === 1);
+        const features = [...FEATURES.default];
+        if (plan.amount > 500000) features.push(...FEATURES.extra);
+        if (plan.description) features.unshift(plan.description);
+
+        const card = document.createElement('div');
+        card.className = `plan-card${isPopular ? ' popular' : ''}`;
+        card.innerHTML = `
+          ${isPopular ? '<div class="popular-tag">Most Popular</div>' : ''}
+          <div>
+            <div class="plan-name">${plan.name}</div>
+            ${plan.description ? `<div class="plan-desc">${plan.description}</div>` : ''}
+          </div>
+          <div class="plan-price">
+            <span class="currency">₦</span>
+            <span class="amount">${(plan.amount / 100).toLocaleString('en-NG')}</span>
+            <span class="period">${intervalLabel(plan.interval)}</span>
+          </div>
+          <div class="plan-features">
+            ${features.slice(0,5).map(f => `
+              <div class="plan-feature">
+                <span class="check">&#10003;</span>
+                <span>${f}</span>
+              </div>
+            `).join('')}
+          </div>
+          <button class="plan-subscribe" onclick="openModal('${plan.id}', '${plan.name}', ${plan.amount}, '${plan.interval}')">
+            Get ${plan.name}
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (e) {
+      grid.innerHTML = `<div class="plans-loading" style="color:#ef4444;">Could not load plans. Is the Adi-Sanlo API running?<br><br><span style="font-size:12px;color:#7b82b0;">${e.message}</span></div>`;
+    }
+  }
+
+  function openModal(planId, planName, amount, interval) {
+    selectedPlan = { id: planId, name: planName, amount, interval };
+    document.getElementById('modal-plan-name').textContent = planName;
+    document.getElementById('modal-plan-price').textContent = `${naira(amount)} per ${interval}`;
+    document.getElementById('modal-error').classList.remove('show');
+    document.getElementById('sub-name').value = '';
+    document.getElementById('sub-email').value = '';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  async function createSubscription() {
+    if (!selectedPlan) return;
+
+    const name = document.getElementById('sub-name').value.trim();
+    const email = document.getElementById('sub-email').value.trim();
+    const errorEl = document.getElementById('modal-error');
+    const btnText = document.getElementById('sub-btn-text');
+
+    errorEl.classList.remove('show');
+    if (!name) { showError(errorEl, 'Please enter your full name.'); return; }
+    if (!email || !email.includes('@')) { showError(errorEl, 'Please enter a valid email address.'); return; }
+
+    btnText.innerHTML = '<span class="spinner"></span> Creating subscription...';
+    document.getElementById('sub-btn').disabled = true;
+
+    try {
+      const res = await fetch(`${API}/v1/subscriptions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan_id: selectedPlan.id,
+          customer_email: email,
+          customer_name: name,
+          callback_url: window.location.href + '?success=1'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Subscription failed');
+
+      if (data.checkout_url) {
+        btnText.innerHTML = 'Redirecting to checkout...';
+        window.location.href = data.checkout_url;
+      } else {
+        btnText.innerHTML = 'Subscribed!';
+        showError(errorEl, 'Subscription created but no checkout URL returned. Status: ' + data.status);
+      }
+    } catch (e) {
+      showError(errorEl, e.message);
+      btnText.innerHTML = 'Subscribe &amp; Pay';
+      document.getElementById('sub-btn').disabled = false;
+    }
+  }
+
+  async function lookupSubscription() {
+    const email = document.getElementById('portal-email').value.trim();
+    const errorEl = document.getElementById('portal-error');
+    const resultEl = document.getElementById('portal-result');
+    const btnText = document.getElementById('portal-btn-text');
+
+    errorEl.classList.remove('show');
+    resultEl.classList.remove('show');
+    if (!email || !email.includes('@')) { showError(errorEl, 'Please enter a valid email.'); return; }
+
+    btnText.innerHTML = '<span class="spinner"></span> Looking up...';
+
+    try {
+      const res = await fetch(`${API}/v1/subscriptions?customer_email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || 'Lookup failed');
+
+      const subs = Array.isArray(data) ? data : [data];
+      if (!subs.length) { showError(errorEl, 'No subscriptions found for this email.'); btnText.textContent = 'Look up my subscription'; return; }
+
+      const sub = subs[0];
+      const statusClass = `status-${sub.status || 'incomplete'}`;
+      const end = sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString('en-NG', {day:'numeric',month:'short',year:'numeric'}) : '—';
+
+      resultEl.innerHTML = `
+        <div class="result-row">
+          <span class="result-label">Status</span>
+          <span class="status-badge ${statusClass}">${sub.status}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Plan</span>
+          <span class="result-value">${sub.plan_id}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Next charge</span>
+          <span class="result-value">${end}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Subscription ID</span>
+          <span class="result-value" style="font-size:11px;">${sub.id}</span>
+        </div>
+        ${sub.status === 'active' ? '<div style="margin-top:16px;padding:12px;background:rgba(34,197,94,0.07);border-radius:8px;font-size:13px;color:#22c55e;text-align:center;">Access granted. Welcome to Studyverse!</div>' : ''}
+        ${sub.status === 'incomplete' ? '<div style="margin-top:16px;padding:12px;background:rgba(245,158,11,0.07);border-radius:8px;font-size:13px;color:#f59e0b;text-align:center;">Payment pending. Complete checkout to activate access.</div>' : ''}
+        ${sub.checkout_url && sub.status === 'incomplete' ? `<a href="${sub.checkout_url}" style="display:block;margin-top:12px;text-align:center;background:#6c63ff;color:#fff;padding:10px;border-radius:8px;font-size:13px;font-weight:600;">Complete payment</a>` : ''}
+      `;
+      resultEl.classList.add('show');
+    } catch (e) {
+      showError(errorEl, e.message);
+    }
+
+    btnText.textContent = 'Look up my subscription';
+  }
+
+  function showError(el, msg) {
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  // Check for success redirect
+  if (new URLSearchParams(window.location.search).get('success')) {
+    setTimeout(() => document.getElementById('portal').scrollIntoView({behavior:'smooth'}), 800);
+  }
+
+  loadPlans();
+</script>
+</body>
+</html>

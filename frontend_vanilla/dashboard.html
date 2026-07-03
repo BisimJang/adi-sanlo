@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overview — Adi-Sanlo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="mark"></span>Adi&#8209;Sanlo</div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html" class="active">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+      Overview
+    </a>
+    <a href="subscribers.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Subscribers
+    </a>
+    <a href="invoices.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Invoices
+    </a>
+    <a href="webhook-logs.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h3l2-5 2 10 2-5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Webhook Logs
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="api-label">API</div>
+    <div class="api-url">adi-sanlo-production.up.railway.app</div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Overview</div>
+    <div class="topbar-meta" id="topbar-date"></div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- Metric Cards -->
+    <div class="metrics-grid" id="metrics-grid">
+      <div class="metric-card"><div class="metric-label">MRR</div><div class="metric-value loading-val">—</div></div>
+      <div class="metric-card"><div class="metric-label">Active Subscribers</div><div class="metric-value loading-val">—</div></div>
+      <div class="metric-card"><div class="metric-label">Failed Payments</div><div class="metric-value loading-val">—</div></div>
+      <div class="metric-card"><div class="metric-label">Churn Rate</div><div class="metric-value loading-val">—</div></div>
+    </div>
+
+    <div class="three-col">
+      <!-- Recent Activity -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Recent Activity</h3>
+          <a class="panel-action" href="invoices.html">View all</a>
+        </div>
+        <ul class="activity-feed" id="activity-feed">
+          <li class="loading">Loading activity</li>
+        </ul>
+      </div>
+
+      <!-- Top Plans -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Top Plans</h3>
+          <a class="panel-action" href="subscribers.html">View all</a>
+        </div>
+        <div id="top-plans">
+          <div class="loading">Loading plans</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  // Date in topbar
+  document.getElementById('topbar-date').textContent =
+    new Date().toLocaleDateString('en-NG', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const eventColor = {
+    'invoice.paid':     'activity-dot-green',
+    'charge.failed':    'activity-dot-red',
+    'invoice.pending':  'activity-dot-gold',
+    default:            'activity-dot-blue',
+  };
+
+  async function loadMetrics() {
+    const cards = document.querySelectorAll('#metrics-grid .metric-card');
+    try {
+      const [mrr, active, failed, churn] = await Promise.all([
+        api('/v1/metrics/mrr'),
+        api('/v1/metrics/active'),
+        api('/v1/metrics/failed'),
+        api('/v1/metrics/churn'),
+      ]);
+
+      const data = [
+        { label: 'MRR',                value: fmt.naira(mrr.mrr),                   delta: null },
+        { label: 'Active Subscribers', value: active.active_subscribers,             delta: null },
+        { label: 'Failed Payments',    value: failed.failed_payments,                delta: 'warn', note: failed.failed_payments > 0 ? 'needs attention' : 'all clear' },
+        { label: 'Churn Rate',         value: churn.churn_rate + '%',                delta: null },
+      ];
+
+      cards.forEach((card, i) => {
+        const d = data[i];
+        card.innerHTML = `
+          <div class="metric-label">${d.label}</div>
+          <div class="metric-value">${d.value}</div>
+          ${d.note ? `<div class="metric-delta ${d.delta}">${d.note}</div>` : ''}
+        `;
+      });
+    } catch (e) {
+      cards.forEach(c => c.innerHTML += `<div class="metric-delta warn">Offline</div>`);
+    }
+  }
+
+  async function loadActivity() {
+    const feed = document.getElementById('activity-feed');
+    try {
+      const items = await api('/v1/metrics/recent-activity');
+      if (!items.length) {
+        feed.innerHTML = '<li class="empty-state" style="padding:32px"><p>No recent activity yet.</p></li>';
+        return;
+      }
+      feed.innerHTML = items.slice(0, 8).map(item => {
+        const dotClass = eventColor[item.event] || eventColor.default;
+        return `
+          <li class="activity-item">
+            <div class="activity-dot ${dotClass}"></div>
+            <div>
+              <div class="activity-event">${item.event}</div>
+              <div class="activity-meta">${item.amount ? fmt.naira(item.amount / 100) + ' &middot; ' : ''}${fmt.time(item.timestamp)}</div>
+            </div>
+            <div style="margin-left:auto">${badge(item.status)}</div>
+          </li>`;
+      }).join('');
+    } catch (e) {
+      feed.innerHTML = '<li class="empty-state" style="padding:32px"><p>Could not load activity.</p></li>';
+    }
+  }
+
+  async function loadTopPlans() {
+    const el = document.getElementById('top-plans');
+    try {
+      const plans = await api('/v1/plans/top');
+      if (!plans.length) {
+        el.innerHTML = '<div class="empty-state" style="padding:32px"><p>No plans created yet.</p></div>';
+        return;
+      }
+      el.innerHTML = `
+        <table>
+          <thead><tr><th>Plan</th><th>Subs</th><th>MRR</th></tr></thead>
+          <tbody>
+            ${plans.map(p => `
+              <tr>
+                <td>${p.name}</td>
+                <td class="mono">${p.subscriber_count}</td>
+                <td class="amount">${fmt.naira(p.mrr / 100)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch (e) {
+      el.innerHTML = '<div class="empty-state" style="padding:32px"><p>Could not load plans.</p></div>';
+    }
+  }
+
+  loadMetrics();
+  loadActivity();
+  loadTopPlans();
+</script>
+</body>
+</html>

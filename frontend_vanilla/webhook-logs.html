@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webhook Logs — Adi-Sanlo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .log-payload {
+    background: #0c1220;
+    color: #a9bbe0;
+    padding: 12px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    display: none;
+  }
+  .toggle-btn {
+    font-size: 11px;
+    color: var(--indigo-mid);
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="mark"></span>Adi&#8209;Sanlo</div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+      Overview
+    </a>
+    <a href="subscribers.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Subscribers
+    </a>
+    <a href="invoices.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Invoices
+    </a>
+    <a href="webhook-logs.html" class="active">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h3l2-5 2 10 2-5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Webhook Logs
+    </a>
+  </nav>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Webhook Logs</div>
+    <div class="topbar-meta" id="topbar-date"></div>
+  </div>
+
+  <div class="page-body">
+    <div class="page-heading">
+      <div>
+        <h1>Webhook Logs</h1>
+        <div class="sub">Recent events received from Nomba</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap" id="table-wrap">
+        <div class="loading">Loading logs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-NG', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  function togglePayload(btn) {
+    const payloadEl = btn.nextElementSibling;
+    if (payloadEl.style.display === 'block') {
+      payloadEl.style.display = 'none';
+      btn.textContent = 'Show Payload';
+    } else {
+      payloadEl.style.display = 'block';
+      btn.textContent = 'Hide Payload';
+    }
+  }
+
+  async function loadData() {
+    const wrap = document.getElementById('table-wrap');
+    try {
+      // Using recent-activity for now since we don't have a dedicated webhook logs endpoint yet
+      const items = await api('/v1/metrics/recent-activity');
+      
+      if (!items.length) {
+        wrap.innerHTML = '<div class="empty-state"><p>No webhook events recorded yet.</p></div>';
+        return;
+      }
+
+      wrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Time</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((i, idx) => `
+              <tr>
+                <td style="font-weight: 500">${i.event}</td>
+                <td>${badge(i.status)}</td>
+                <td class="amount">${i.amount ? fmt.naira(i.amount / 100) : '—'}</td>
+                <td class="mono">${fmt.time(i.timestamp)}</td>
+                <td>
+                  <button class="toggle-btn" onclick="togglePayload(this)">Show Payload</button>
+                  <div class="log-payload">{
+  "event": "${i.event}",
+  "timestamp": "${i.timestamp}",
+  "status": "${i.status}"${i.amount ? `,\n  "amount": ${i.amount}` : ''}
+}</div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch (e) {
+      showError('table-wrap', e.message);
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>

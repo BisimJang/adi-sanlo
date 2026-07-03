@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscribers — Adi-Sanlo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="mark"></span>Adi&#8209;Sanlo</div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+      Overview
+    </a>
+    <a href="subscribers.html" class="active">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Subscribers
+    </a>
+    <a href="invoices.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Invoices
+    </a>
+    <a href="webhook-logs.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h3l2-5 2 10 2-5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Webhook Logs
+    </a>
+  </nav>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Subscribers</div>
+    <div class="topbar-meta" id="topbar-date"></div>
+  </div>
+
+  <div class="page-body">
+    <div class="page-heading">
+      <div>
+        <h1>Subscribers</h1>
+        <div class="sub">Manage recurring billing customers</div>
+      </div>
+      <div class="filter-tabs" id="status-filters">
+        <button class="filter-tab active" data-status="">All</button>
+        <button class="filter-tab" data-status="active">Active</button>
+        <button class="filter-tab" data-status="incomplete">Incomplete</button>
+        <button class="filter-tab" data-status="paused">Paused</button>
+        <button class="filter-tab" data-status="cancelled">Cancelled</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap" id="table-wrap">
+        <div class="loading">Loading subscribers</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-NG', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  let currentStatus = '';
+
+  document.getElementById('status-filters').addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentStatus = e.target.dataset.status;
+    loadData();
+  });
+
+  async function act(action, id) {
+    if (!confirm(`Are you sure you want to ${action} this subscription?`)) return;
+    try {
+      await api(`/v1/subscriptions/${id}/${action}`, { method: 'POST' });
+      loadData();
+    } catch (e) {
+      alert(`Failed to ${action} subscription: ` + e.message);
+    }
+  }
+
+  async function loadData() {
+    const wrap = document.getElementById('table-wrap');
+    wrap.innerHTML = '<div class="loading">Loading subscribers</div>';
+    try {
+      const url = currentStatus ? `/v1/subscriptions?status=${currentStatus}` : '/v1/subscriptions';
+      const subs = await api(url);
+      
+      if (!subs.length) {
+        wrap.innerHTML = '<div class="empty-state"><p>No subscribers found.</p></div>';
+        return;
+      }
+
+      wrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Customer ID</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Period End</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${subs.map(s => `
+              <tr>
+                <td class="mono">${s.customer_id.slice(0,8)}...</td>
+                <td>${s.plan_id}</td>
+                <td>${badge(s.status)}</td>
+                <td class="mono">${fmt.date(s.current_period_end)}</td>
+                <td>
+                  ${s.status === 'active' ? `<button class="btn btn-sm btn-ghost" onclick="act('pause', '${s.id}')">Pause</button>` : ''}
+                  ${s.status !== 'cancelled' ? `<button class="btn btn-sm btn-danger" onclick="act('cancel', '${s.id}')">Cancel</button>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch (e) {
+      showError('table-wrap', e.message);
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>

@@ -12,14 +12,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/plans", tags=["Plans"])
 
 
+import os
+
+DEFAULT_TENANT_ID = os.getenv("DEFAULT_TENANT_ID", "tenant_default")
+
 @router.post("", response_model=PlanResponse, status_code=201)
 async def create_plan(body: PlanCreate, db: AsyncSession = Depends(get_db)):
     """Create a new billing plan."""
     plan = Plan(
         id=str(uuid.uuid4()),
+        tenant_id=DEFAULT_TENANT_ID,
         name=body.name,
-        amount=body.amount,
-        currency=body.currency,
+        base_amount=body.amount,
+        billing_model="flat",
         interval=body.interval.value,
         description=body.description,
         is_active=True,
@@ -49,12 +54,12 @@ async def top_plans(db: AsyncSession = Depends(get_db)):
         select(
             Plan.id,
             Plan.name,
-            Plan.amount,
+            Plan.base_amount.label("amount"),
             func.count(Subscription.id).label("subscriber_count")
         )
         .join(Subscription, Subscription.plan_id == Plan.id, isouter=True)
         .where(Subscription.status == "active")
-        .group_by(Plan.id)
+        .group_by(Plan.id, Plan.name, Plan.base_amount)
         .order_by(func.count(Subscription.id).desc())
     )
     rows = result.all()

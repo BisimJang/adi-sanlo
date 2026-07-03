@@ -45,6 +45,14 @@ class Plan(Base):
     tenant = relationship("Tenant", back_populates="plans")
     subscriptions = relationship("Subscription", back_populates="plan")
 
+    @property
+    def amount(self):
+        return self.base_amount
+
+    @property
+    def currency(self):
+        return "NGN"
+
 
 class Customer(Base):
     __tablename__ = "customers"

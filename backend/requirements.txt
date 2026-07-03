@@ -10,3 +10,5 @@ sqlalchemy[asyncio]
 aiosqlite
 python-dateutil
 email-validator
+
+asyncpg

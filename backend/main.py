@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 from database import engine
 from models import Base
 from routers import webhooks, plans, subscriptions, invoices, metrics
+from cron import cron_loop
 
 load_dotenv()
 
@@ -20,7 +22,18 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables ensured.")
+    
+    # Start the auto-charge cron engine
+    task = asyncio.create_task(cron_loop())
+    
     yield
+    
+    # Shutdown
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 app = FastAPI(

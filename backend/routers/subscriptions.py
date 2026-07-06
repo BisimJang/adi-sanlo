@@ -6,16 +6,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
-from models import Plan, Customer, Subscription, Invoice
+from models import Plan, Customer, Subscription, Invoice, Tenant
 from schemas import SubscriptionCreate, SubscriptionResponse
 from nomba_client import NombaClient
+from dependencies import get_current_tenant
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
 
 CALLBACK_BASE = os.getenv("APP_BASE_URL", "https://adi-sanlo-production.up.railway.app")
-DEFAULT_TENANT_ID = os.getenv("DEFAULT_TENANT_ID", "tenant_default")
 
 
 def get_nomba_client() -> NombaClient:
@@ -30,27 +30,28 @@ def get_nomba_client() -> NombaClient:
 @router.post("", status_code=201)
 async def create_subscription(
     body: SubscriptionCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
 ):
     """
     Create a subscription for a customer on a plan.
     Returns a Nomba checkout URL for the customer to complete payment.
     """
-    # Verify plan exists
-    result = await db.execute(select(Plan).where(Plan.id == body.plan_id, Plan.is_active == True))
+    # Verify plan exists and belongs to tenant
+    result = await db.execute(select(Plan).where(Plan.id == body.plan_id, Plan.is_active == True, Plan.tenant_id == tenant.id))
     plan = result.scalar_one_or_none()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found or inactive")
 
     # Get or create customer
     result = await db.execute(
-        select(Customer).where(Customer.email == body.customer_email)
+        select(Customer).where(Customer.email == body.customer_email, Customer.tenant_id == tenant.id)
     )
     customer = result.scalar_one_or_none()
     if not customer:
         customer = Customer(
             id=str(uuid.uuid4()),
-            tenant_id=DEFAULT_TENANT_ID,
+            tenant_id=tenant.id,
             external_id=body.customer_email,
             email=body.customer_email,
             name=body.customer_name,
@@ -61,7 +62,7 @@ async def create_subscription(
     # Create subscription in incomplete state
     subscription = Subscription(
         id=str(uuid.uuid4()),
-        tenant_id=DEFAULT_TENANT_ID,
+        tenant_id=tenant.id,
         customer_id=customer.id,
         plan_id=plan.id,
         status="incomplete",
@@ -72,7 +73,7 @@ async def create_subscription(
     # Create pending invoice
     invoice = Invoice(
         id=str(uuid.uuid4()),
-        tenant_id=DEFAULT_TENANT_ID,
+        tenant_id=tenant.id,
         subscription_id=subscription.id,
         customer_id=customer.id,
         amount=plan.base_amount,
@@ -106,10 +107,11 @@ async def create_subscription(
 @router.get("")
 async def list_subscriptions(
     status: str = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
 ):
-    """List all subscriptions, optionally filtered by status."""
-    query = select(Subscription)
+    """List all subscriptions for this tenant, optionally filtered by status."""
+    query = select(Subscription).where(Subscription.tenant_id == tenant.id)
     if status:
         query = query.where(Subscription.status == status)
     result = await db.execute(query.order_by(Subscription.created_at.desc()))
@@ -129,9 +131,9 @@ async def list_subscriptions(
 
 
 @router.post("/{subscription_id}/pause")
-async def pause_subscription(subscription_id: str, db: AsyncSession = Depends(get_db)):
+async def pause_subscription(subscription_id: str, db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Pause an active subscription."""
-    result = await db.execute(select(Subscription).where(Subscription.id == subscription_id))
+    result = await db.execute(select(Subscription).where(Subscription.id == subscription_id, Subscription.tenant_id == tenant.id))
     subscription = result.scalar_one_or_none()
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
@@ -144,9 +146,9 @@ async def pause_subscription(subscription_id: str, db: AsyncSession = Depends(ge
 
 
 @router.post("/{subscription_id}/cancel")
-async def cancel_subscription(subscription_id: str, db: AsyncSession = Depends(get_db)):
+async def cancel_subscription(subscription_id: str, db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Cancel a subscription."""
-    result = await db.execute(select(Subscription).where(Subscription.id == subscription_id))
+    result = await db.execute(select(Subscription).where(Subscription.id == subscription_id, Subscription.tenant_id == tenant.id))
     subscription = result.scalar_one_or_none()
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")

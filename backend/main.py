@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from database import engine
 from models import Base
-from routers import webhooks, plans, subscriptions, invoices, metrics
+from routers import webhooks, plans, subscriptions, invoices, metrics, auth
 from cron import cron_loop
 
 load_dotenv()
@@ -48,8 +48,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:4000",
+        "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:4000",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -58,6 +60,7 @@ app.add_middleware(
 
 # ─── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(webhooks.router)
+app.include_router(auth.router, prefix="/v1")
 app.include_router(plans.router, prefix="/v1")
 app.include_router(subscriptions.router, prefix="/v1")
 app.include_router(invoices.router, prefix="/v1")

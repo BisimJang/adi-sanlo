@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
-from models import Invoice, Subscription, Customer, Plan
+from models import Invoice, Subscription, Customer, Plan, Tenant
+from dependencies import get_current_tenant
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +14,11 @@ router = APIRouter(prefix="/invoices", tags=["Invoices"])
 @router.get("")
 async def list_invoices(
     status: str = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
 ):
-    """List all invoices, optionally filtered by status."""
-    query = select(Invoice)
+    """List all invoices for this tenant, optionally filtered by status."""
+    query = select(Invoice).where(Invoice.tenant_id == tenant.id)
     if status:
         query = query.where(Invoice.status == status)
     result = await db.execute(query.order_by(Invoice.created_at.desc()))
@@ -24,7 +26,7 @@ async def list_invoices(
 
 
 @router.post("/{invoice_id}/retry")
-async def retry_invoice(invoice_id: str, db: AsyncSession = Depends(get_db)):
+async def retry_invoice(invoice_id: str, db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """
     Manually retry a failed invoice.
     Charges the customer's saved card token via Nomba.
@@ -32,7 +34,7 @@ async def retry_invoice(invoice_id: str, db: AsyncSession = Depends(get_db)):
     import os
     from nomba_client import NombaClient
 
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id))
+    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.tenant_id == tenant.id))
     invoice = result.scalar_one_or_none()
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -77,9 +79,9 @@ async def retry_invoice(invoice_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/{invoice_id}/void")
-async def void_invoice(invoice_id: str, db: AsyncSession = Depends(get_db)):
+async def void_invoice(invoice_id: str, db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Void an open invoice."""
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id))
+    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.tenant_id == tenant.id))
     invoice = result.scalar_one_or_none()
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")

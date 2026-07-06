@@ -2,26 +2,23 @@ import uuid
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from database import get_db
-from models import Plan
+from models import Plan, Subscription, Tenant
 from schemas import PlanCreate, PlanResponse
+from dependencies import get_current_tenant
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/plans", tags=["Plans"])
 
 
-import os
-
-DEFAULT_TENANT_ID = os.getenv("DEFAULT_TENANT_ID", "tenant_default")
-
 @router.post("", response_model=PlanResponse, status_code=201)
-async def create_plan(body: PlanCreate, db: AsyncSession = Depends(get_db)):
+async def create_plan(body: PlanCreate, db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Create a new billing plan."""
     plan = Plan(
         id=str(uuid.uuid4()),
-        tenant_id=DEFAULT_TENANT_ID,
+        tenant_id=tenant.id,
         name=body.name,
         base_amount=body.amount,
         billing_model="flat",
@@ -36,20 +33,17 @@ async def create_plan(body: PlanCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("", response_model=list[PlanResponse])
-async def list_plans(db: AsyncSession = Depends(get_db)):
+async def list_plans(db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """List all active plans."""
     result = await db.execute(
-        select(Plan).where(Plan.is_active == True).order_by(Plan.created_at.desc())
+        select(Plan).where(Plan.is_active == True, Plan.tenant_id == tenant.id).order_by(Plan.created_at.desc())
     )
     return result.scalars().all()
 
 
 @router.get("/top")
-async def top_plans(db: AsyncSession = Depends(get_db)):
+async def top_plans(db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Return top plans ranked by active subscriber count."""
-    from sqlalchemy import func
-    from models import Subscription
-
     result = await db.execute(
         select(
             Plan.id,
@@ -58,7 +52,7 @@ async def top_plans(db: AsyncSession = Depends(get_db)):
             func.count(Subscription.id).label("subscriber_count")
         )
         .join(Subscription, Subscription.plan_id == Plan.id, isouter=True)
-        .where(Subscription.status == "active")
+        .where(Subscription.status == "active", Plan.tenant_id == tenant.id)
         .group_by(Plan.id, Plan.name, Plan.base_amount)
         .order_by(func.count(Subscription.id).desc())
     )
@@ -76,9 +70,9 @@ async def top_plans(db: AsyncSession = Depends(get_db)):
 
 
 @router.delete("/{plan_id}")
-async def deactivate_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
+async def deactivate_plan(plan_id: str, db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Deactivate a plan (soft delete)."""
-    result = await db.execute(select(Plan).where(Plan.id == plan_id))
+    result = await db.execute(select(Plan).where(Plan.id == plan_id, Plan.tenant_id == tenant.id))
     plan = result.scalar_one_or_none()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")

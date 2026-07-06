@@ -1,6 +1,13 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export function Landing() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("adi_sanlo_api_key"));
+  }, []);
+
   return (
     <div className="w-full min-h-screen bg-white">
       <nav className="sticky top-0 z-40 bg-[rgba(255,255,255,0.92)] backdrop-blur-md border-b border-[rgba(19,27,46,0.09)]">
@@ -13,11 +20,22 @@ export function Landing() {
             <a href="#features" className="opacity-70 hover:opacity-100 transition-opacity">Product</a>
             <a href="#usecases" className="opacity-70 hover:opacity-100 transition-opacity">Use cases</a>
             <a href="#api" className="opacity-70 hover:opacity-100 transition-opacity">API</a>
-            <Link to="/dashboard" className="opacity-70 hover:opacity-100 transition-opacity">Dashboard</Link>
+            {isLoggedIn && <Link to="/dashboard" className="opacity-70 hover:opacity-100 transition-opacity">Dashboard</Link>}
           </div>
-          <Link to="/dashboard" className="font-mono text-[12.5px] font-medium bg-ink text-white px-[18px] py-[10px] rounded-[3px] border border-ink hover:bg-transparent hover:text-ink transition-colors">
-            Open dashboard
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/dashboard" className="font-mono text-[12.5px] font-medium bg-ink text-white px-[18px] py-[10px] rounded-[3px] border border-ink hover:bg-transparent hover:text-ink transition-colors">
+              Open dashboard
+            </Link>
+          ) : (
+            <div className="flex items-center gap-4">
+              <Link to="/login" className="font-mono text-[13px] font-medium text-ink hover:text-indigo-600 transition-colors">
+                Log in
+              </Link>
+              <Link to="/signup" className="font-mono text-[12.5px] font-medium bg-ink text-white px-[18px] py-[10px] rounded-[3px] border border-ink hover:bg-transparent hover:text-ink transition-colors">
+                Sign up
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -36,12 +54,18 @@ export function Landing() {
                 Adi&#8209;Sanlo is a managed subscription layer built on Nomba's payment primitives. Tokenised cards, mandates, dunning and webhooks are handled for you, so your AI SaaS or EdTech product just gets paid.
               </p>
               <div className="flex flex-wrap gap-[14px]">
-                <Link to="/dashboard" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-accent text-ink rounded-[3px] hover:-translate-y-[1px] hover:bg-[#c9962e] transition-all">
-                  Open dashboard
-                </Link>
-                <a href="#api" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-transparent border border-[rgba(19,27,46,0.22)] text-ink rounded-[3px] hover:border-ink transition-colors">
+                {isLoggedIn ? (
+                  <Link to="/dashboard" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-accent text-ink rounded-[3px] hover:-translate-y-[1px] hover:bg-[#c9962e] transition-all">
+                    Open dashboard
+                  </Link>
+                ) : (
+                  <Link to="/signup" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-accent text-ink rounded-[3px] hover:-translate-y-[1px] hover:bg-[#c9962e] transition-all">
+                    Get Started
+                  </Link>
+                )}
+                <Link to="/docs" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-transparent border border-[rgba(19,27,46,0.22)] text-ink rounded-[3px] hover:border-ink transition-colors">
                   Read the docs
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -235,9 +259,15 @@ curl -X POST https://api.adisanlo.dev/v1/subscriptions \\
           <div className="font-mono text-[12px] tracking-[0.14em] uppercase text-indigo-mid flex items-center justify-center gap-[10px] before:content-[''] before:w-[14px] before:h-[2px] before:bg-accent before:inline-block">Ready when you are</div>
           <h2 className="text-[clamp(32px,4.2vw,48px)] mt-[18px] text-ink">Stop rebuilding billing.<br/>Bind. Pay. Go.</h2>
           <p className="text-indigo-mid my-[18px] mb-[32px] text-[15.5px]">Free while in Build Phase. Full docs and API reference coming soon.</p>
-          <Link to="/dashboard" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-accent text-ink rounded-[3px] hover:-translate-y-[1px] hover:bg-[#c9962e] transition-all inline-block">
-            Open dashboard
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/dashboard" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-accent text-ink rounded-[3px] hover:-translate-y-[1px] hover:bg-[#c9962e] transition-all inline-block">
+              Open dashboard
+            </Link>
+          ) : (
+            <Link to="/signup" className="font-mono text-[13.5px] font-medium px-6 py-3.5 bg-accent text-ink rounded-[3px] hover:-translate-y-[1px] hover:bg-[#c9962e] transition-all inline-block">
+              Get Started
+            </Link>
+          )}
         </div>
       </section>
 

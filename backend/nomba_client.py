@@ -65,7 +65,8 @@ class NombaClient:
                 "callbackUrl": callback_url,
                 "amount": amount,
                 "currency": "NGN"
-            }
+            },
+            "tokenizeCard": True
         }
         
         # Nomba checkout endpoint

@@ -6,16 +6,19 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 class NombaClient:
-    BASE_URL = os.getenv("NOMBA_BASE_URL", "https://api.nomba.com/v1")
-
     def __init__(self, parent_account_id: str, sub_account_id: str, client_id: str, client_secret: str):
+        base = os.getenv("NOMBA_BASE_URL", "https://api.nomba.com/v1").rstrip("/")
+        if not base.endswith("/v1"):
+            base += "/v1"
+        self.BASE_URL = base
+        
         self.parent_account_id = parent_account_id
         self.sub_account_id = sub_account_id
         self.client_id = client_id
         self.client_secret = client_secret
         self.access_token = None
         self.token_expires_at = None
-        self.client = httpx.AsyncClient(base_url=self.BASE_URL)
+        self.client = httpx.AsyncClient()
 
     async def _get_access_token(self) -> str:
         # Check if we have a valid cached token
@@ -23,8 +26,9 @@ class NombaClient:
             return self.access_token
 
         # Otherwise, fetch a new one
+        url = f"{self.BASE_URL}/auth/token/issue"
         response = await self.client.post(
-            "/auth/token/issue",
+            url,
             json={
                 "grant_type": "client_credentials",
                 "client_id": self.client_id,
@@ -47,7 +51,8 @@ class NombaClient:
         headers["Authorization"] = f"Bearer {token}"
         headers["accountId"] = self.parent_account_id
         
-        response = await self.client.request(method, endpoint, headers=headers, **kwargs)
+        url = f"{self.BASE_URL}{endpoint if endpoint.startswith('/') else '/' + endpoint}"
+        response = await self.client.request(method, url, headers=headers, **kwargs)
         response.raise_for_status()
         return response.json()
 

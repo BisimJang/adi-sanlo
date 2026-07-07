@@ -20,7 +20,7 @@ async def process_renewals():
     logger.info("Running recurring billing engine...")
     
     async with async_session_maker() as db:
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         
         # 1. Find all active subscriptions that are due for renewal
         # (current_period_end is in the past)

@@ -21,14 +21,6 @@ Adi-Sanlo supports:
 - **Database**: PostgreSQL (via SQLAlchemy)
 - **Payment Provider**: Nomba API
 
-## Hackathon MVP Note: Authentication
-For the purpose of this hackathon submission, we implemented a frictionless **API Key login** for the merchant dashboard rather than a traditional email/password authentication flow. 
-
-**Why?** 
-Building a production-ready auth service (JWT session management, password hashing, password resets) takes significant time. We chose to completely bypass generic authentication boilerplate so we could dedicate 100% of our 48 hours to building the actual core innovation: **the subscription orchestration engine on top of Nomba's APIs.** 
-
-In a production environment, the web dashboard would utilize standard OAuth or JWT email login, and the API key would be strictly relegated to server-to-server API calls. For this demo, using the API key as the dashboard login token allows judges to instantly access the platform without having to verify fake emails.
-
 ## Structure
 - `/backend`: Core FastAPI application and webhook listeners.
 - `/docs`: Technical architecture and API reference (coming soon).

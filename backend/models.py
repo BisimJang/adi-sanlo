@@ -12,6 +12,8 @@ class Tenant(Base):
     
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=True)
+    password_hash = Column(String, nullable=True)
     api_key = Column(String, unique=True, nullable=False)
     webhook_url = Column(String)
     nomba_secret = Column(String)

@@ -4,6 +4,8 @@ import { Button } from "../components/Button";
 
 export function Signup() {
   const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -18,11 +20,16 @@ export function Signup() {
       const res = await fetch("https://adi-sanlo-production.up.railway.app/v1/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ business_name: businessName })
+        body: JSON.stringify({ 
+          business_name: businessName,
+          email: email,
+          password: password 
+        })
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create account");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to create account");
       }
 
       const data = await res.json();
@@ -56,7 +63,7 @@ export function Signup() {
         <div className="bg-white rounded-[8px] border border-border p-8 shadow-sm">
           <h1 className="text-[20px] font-bold text-ink mb-2">Create Developer Account</h1>
           <p className="text-[13.5px] text-indigo-mid mb-6">
-            Get your API keys and start billing with Nomba.
+            Sign up to get your API keys and start billing.
           </p>
 
           <form onSubmit={handleSignup} className="flex flex-col gap-4">
@@ -78,8 +85,32 @@ export function Signup() {
               />
             </div>
 
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-ink">Email Address</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                required
+                className="border border-border rounded-[4px] px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-ink">Password</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="border border-border rounded-[4px] px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+              />
+            </div>
+
             <Button type="submit" disabled={loading} className="w-full mt-2">
-              {loading ? "Generating API Keys..." : "Sign Up & Get API Key"}
+              {loading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
         </div>

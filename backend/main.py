@@ -21,6 +21,16 @@ async def lifespan(app: FastAPI):
     # Create all tables on startup if they don't exist
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Safe migration hack for hackathon MVP
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("ALTER TABLE tenants ADD COLUMN email VARCHAR;"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE tenants ADD COLUMN password_hash VARCHAR;"))
+        except Exception:
+            pass
     logger.info("Database tables ensured.")
     
     # Start the auto-charge cron engine

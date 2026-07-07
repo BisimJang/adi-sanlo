@@ -17,6 +17,13 @@ export async function api(path, options = {}) {
     headers,
   });
   
+  if (res.status === 401) {
+    localStorage.removeItem("adi_sanlo_api_key");
+    localStorage.removeItem("adi_sanlo_tenant_id");
+    window.location.href = '/login';
+    throw new Error("Unauthorized");
+  }
+
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }

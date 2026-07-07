@@ -1,7 +1,7 @@
 import uuid
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -140,7 +140,8 @@ async def pause_subscription(subscription_id: str, db: AsyncSession = Depends(ge
     if subscription.status != "active":
         raise HTTPException(status_code=400, detail="Only active subscriptions can be paused")
     subscription.status = "paused"
-    subscription.paused_at = datetime.now(timezone.utc)
+    from datetime import datetime
+    subscription.paused_at = datetime.utcnow()
     await db.commit()
     return {"status": "paused", "subscription_id": subscription_id}
 
@@ -155,6 +156,7 @@ async def cancel_subscription(subscription_id: str, db: AsyncSession = Depends(g
     if subscription.status == "cancelled":
         raise HTTPException(status_code=400, detail="Subscription is already cancelled")
     subscription.status = "cancelled"
-    subscription.cancelled_at = datetime.now(timezone.utc)
+    from datetime import datetime
+    subscription.cancelled_at = datetime.utcnow()
     await db.commit()
     return {"status": "cancelled", "subscription_id": subscription_id}

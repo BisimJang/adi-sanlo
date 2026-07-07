@@ -67,8 +67,8 @@ async def retry_invoice(invoice_id: str, db: AsyncSession = Depends(get_db), ten
         )
         invoice.status = "paid"
         invoice.attempt_count += 1
-        from datetime import datetime, timezone
-        invoice.paid_at = datetime.now(timezone.utc)
+        from datetime import datetime
+        invoice.paid_at = datetime.utcnow()
         await db.commit()
         return {"status": "paid", "invoice_id": invoice_id, "response": response}
     except Exception as e:

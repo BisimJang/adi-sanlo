@@ -4,7 +4,7 @@ import json
 import os
 import uuid
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from fastapi import APIRouter, Request, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -100,7 +100,8 @@ async def handle_checkout_completed(data: dict, db: AsyncSession):
         return
 
     # Activate subscription
-    now = datetime.now(timezone.utc)
+    from datetime import datetime
+    now = datetime.utcnow()
     subscription.status = "active"
     subscription.current_period_start = now
 
@@ -168,7 +169,8 @@ async def handle_mandate_active(data: dict, db: AsyncSession):
     subscription = result.scalar_one_or_none()
     if subscription:
         from dateutil.relativedelta import relativedelta
-        now = datetime.now(timezone.utc)
+        from datetime import datetime
+        now = datetime.utcnow()
         subscription.status = "active"
         subscription.current_period_start = now
         subscription.current_period_end = now + relativedelta(months=1)
@@ -214,7 +216,8 @@ async def handle_debit_success(data: dict, db: AsyncSession):
     mandate_id = data.get("mandateId")
     amount = data.get("amount")
     reference = data.get("transactionReference")
-    now = datetime.now(timezone.utc)
+    from datetime import datetime
+    now = datetime.utcnow()
 
     result = await db.execute(
         select(Customer).where(Customer.mandate_id == mandate_id)
@@ -263,7 +266,8 @@ async def handle_debit_failed(data: dict, db: AsyncSession):
     mandate_id = data.get("mandateId")
     error_code = data.get("errorCode", "unknown")
     reason = data.get("reason", "Payment failed")
-    now = datetime.now(timezone.utc)
+    from datetime import datetime
+    now = datetime.utcnow()
 
     result = await db.execute(
         select(Customer).where(Customer.mandate_id == mandate_id)

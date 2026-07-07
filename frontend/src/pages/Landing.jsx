@@ -23,9 +23,21 @@ export function Landing() {
             {isLoggedIn && <Link to="/dashboard" className="opacity-70 hover:opacity-100 transition-opacity">Dashboard</Link>}
           </div>
           {isLoggedIn ? (
-            <Link to="/dashboard" className="font-mono text-[12.5px] font-medium bg-ink text-white px-[18px] py-[10px] rounded-[3px] border border-ink hover:bg-transparent hover:text-ink transition-colors">
-              Open dashboard
-            </Link>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => {
+                  localStorage.removeItem("adi_sanlo_api_key");
+                  localStorage.removeItem("adi_sanlo_tenant_id");
+                  window.location.reload();
+                }} 
+                className="font-mono text-[13px] font-medium text-ink hover:text-[#b83232] transition-colors"
+              >
+                Log out
+              </button>
+              <Link to="/dashboard" className="font-mono text-[12.5px] font-medium bg-ink text-white px-[18px] py-[10px] rounded-[3px] border border-ink hover:bg-transparent hover:text-ink transition-colors">
+                Open dashboard
+              </Link>
+            </div>
           ) : (
             <div className="flex items-center gap-4">
               <Link to="/login" className="font-mono text-[13px] font-medium text-ink hover:text-indigo-600 transition-colors">

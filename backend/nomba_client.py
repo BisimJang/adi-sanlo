@@ -1,11 +1,12 @@
 import httpx
 import logging
+import os
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
 class NombaClient:
-    BASE_URL = "https://api.nomba.com/v1"
+    BASE_URL = os.getenv("NOMBA_BASE_URL", "https://api.nomba.com/v1")
 
     def __init__(self, parent_account_id: str, sub_account_id: str, client_id: str, client_secret: str):
         self.parent_account_id = parent_account_id

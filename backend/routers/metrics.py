@@ -16,7 +16,7 @@ async def get_mrr(db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(g
     """Monthly Recurring Revenue from all active subscriptions for this tenant."""
     from models import Plan
     result = await db.execute(
-        select(func.sum(Plan.amount))
+        select(func.sum(Plan.base_amount))
         .join(Subscription, Subscription.plan_id == Plan.id)
         .where(Subscription.status == "active", Subscription.tenant_id == tenant.id)
     )
@@ -38,8 +38,8 @@ async def get_active_subscribers(db: AsyncSession = Depends(get_db), tenant: Ten
 @router.get("/failed")
 async def get_failed_payments(db: AsyncSession = Depends(get_db), tenant: Tenant = Depends(get_current_tenant)):
     """Number of failed payment invoices this month for this tenant."""
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
+    from datetime import datetime
+    now = datetime.utcnow()
     start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     result = await db.execute(
@@ -57,8 +57,8 @@ async def get_churn_rate(db: AsyncSession = Depends(get_db), tenant: Tenant = De
     Churn rate = cancelled this month / active at start of month.
     Returns a percentage.
     """
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
+    from datetime import datetime
+    now = datetime.utcnow()
     start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     result = await db.execute(

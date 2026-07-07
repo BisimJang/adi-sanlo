@@ -49,7 +49,7 @@ class NombaClient:
         token = await self._get_access_token()
         headers = kwargs.pop("headers", {})
         headers["Authorization"] = f"Bearer {token}"
-        headers["accountId"] = self.parent_account_id
+        headers["accountId"] = self.sub_account_id
         
         url = f"{self.BASE_URL}{endpoint if endpoint.startswith('/') else '/' + endpoint}"
         response = await self.client.request(method, url, headers=headers, **kwargs)

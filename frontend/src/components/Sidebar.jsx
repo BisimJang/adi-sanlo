@@ -24,9 +24,18 @@ export function Sidebar() {
 
   return (
     <aside className="fixed top-0 left-0 z-30 flex flex-col w-sidebar min-h-screen p-0 bg-ink">
-      <Link to="/" className="flex items-center gap-[9px] font-bold text-[16px] text-white pt-7 px-6 pb-6 border-b border-[rgba(255,255,255,0.07)] tracking-[-0.01em] hover:opacity-80 transition-opacity">
-        <span className="w-[7px] h-[7px] bg-accent inline-block"></span>
-        Adi&#8209;Sanlo
+      <Link to="/" className="relative flex items-center gap-[9px] font-bold text-[16px] text-white pt-7 px-6 pb-6 border-b border-[rgba(255,255,255,0.07)] tracking-[-0.01em] hover:opacity-80 transition-opacity overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none"
+          style={{ 
+            backgroundImage: 'url(/adire-pattern.png)',
+            backgroundSize: '150px',
+            backgroundPosition: 'top left'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink pointer-events-none" />
+        <span className="relative z-10 w-[7px] h-[7px] bg-accent inline-block"></span>
+        <span className="relative z-10">Adi&#8209;Sanlo</span>
       </Link>
       
       <nav className="flex flex-col flex-1 gap-[2px] py-5">

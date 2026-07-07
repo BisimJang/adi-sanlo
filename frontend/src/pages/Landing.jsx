@@ -51,8 +51,16 @@ export function Landing() {
         </div>
       </nav>
 
-      <section className="bg-white pt-[120px] pb-[96px] border-b border-[rgba(19,27,46,0.08)] overflow-hidden">
-        <div className="max-w-[1120px] mx-auto px-8">
+      <section className="relative bg-white pt-[120px] pb-[96px] border-b border-[rgba(19,27,46,0.08)] overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply"
+          style={{ 
+            backgroundImage: 'url(/adire-pattern.png)',
+            backgroundSize: '800px',
+            backgroundPosition: 'top center'
+          }}
+        />
+        <div className="relative z-10 max-w-[1120px] mx-auto px-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-16 items-center">
             {/* Left: Copy */}
             <div>
@@ -315,7 +323,7 @@ curl -X POST https://api.adisanlo.dev/v1/subscriptions \\
               <h4 className="font-mono text-[11.5px] tracking-[0.1em] uppercase text-[#7284a3] m-0 mb-[18px] font-medium">Company</h4>
               <ul className="list-none m-0 p-0 flex flex-col gap-[12px]">
                 <li><a href="#" className="text-[14px] text-[#c3cde4] hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="text-[14px] text-[#c3cde4] hover:text-white transition-colors">Contact</a></li>
+                <li><a href="https://nomba.com/contact" target="_blank" rel="noopener noreferrer" className="text-[14px] text-[#c3cde4] hover:text-white transition-colors">Contact</a></li>
                 <li><a href="#" className="text-[14px] text-[#c3cde4] hover:text-white transition-colors">Jos, Nigeria</a></li>
               </ul>
             </div>
